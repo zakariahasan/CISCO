@@ -1,0 +1,9 @@
+#RIP- Configuration
+#---------------**********----------------------
+#Configuring RIP requires the following steps:
+#Step 1 Enable the RIP routing process, which places you in router configuration mode via the Router# router rip command.
+#Step 2 Specify those networks that should be advertised using RIP via the Router(config-router)#network [network-number] command.
+
+router rip 
+version 2
+network 10.10.20.0
