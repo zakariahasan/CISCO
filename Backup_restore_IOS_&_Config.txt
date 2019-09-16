@@ -1,0 +1,8 @@
+
+
+                            #TFTP Server
+------------------***************--------------------------------
+
+copy system:running-config tftp://192.168.101.2/testrouter_config.txt    #To copy running config to tftp-Server
+copy tftp://192.168.101.2/testrouter_config.txt                          #To restore backup configuration
+
