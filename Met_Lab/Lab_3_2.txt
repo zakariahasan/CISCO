@@ -1,0 +1,196 @@
+-------R1---------------
+ en
+ conf t
+ hostname R1
+ no ip domain-lookup
+ line con 0
+ logging synchronous
+ exec-timeout 0 0
+exit
+ interface GigabitEthernet0/0
+ ip address 192.168.1.1 255.255.255.0
+ ipv6 address FE80::1 link-local
+ ipv6 address 2001:DB8:CAFE:1::1/64
+ no shutdown
+ exit
+ interface Serial0/0/0
+ ip address 192.168.2.1 255.255.255.252
+ ipv6 address FE80::1 link-local
+ ipv6 address 2001:DB8:CAFE:2::1/64
+ clock rate 64000
+ no shutdown
+ exit
+ router ospf 1 
+ router-id 1.1.1.1
+ exit
+ interface serial 0/0/0
+ ip ospf 1 area 51
+ exit
+ interface gigabitethernet 0/0
+ ip ospf 1 area 51            
+ exit
+ router ospf 1
+ area 51 stub
+ exit
+ ipv6 unicast-routing
+ end
+ ipv6 router ospf 2
+ router-id 1.1.1.1
+ exit
+ interface gigabitethernet 0/0
+ ipv6 ospf 2 area 51
+ exit
+ interface serial 0/0/0
+ ipv6 ospf 2 area 51   
+ exit
+ ipv6 router ospf 2
+ area 51 stub
+ exit
+-------R2---------------
+ en
+ conf t
+ hostname R2
+ no ip domain-lookup
+ line con 0
+ logging synchronous
+ exec-timeout 0 0
+exit
+ interface GigabitEthernet0/0
+ ip address 192.168.3.1 255.255.255.0
+ ipv6 address FE80::2 link-local
+ ipv6 address 2001:DB8:CAFE:3::1/64
+ no shutdown
+ exit
+ interface Serial0/0/0
+ ip address 192.168.2.2 255.255.255.252
+ ipv6 address FE80::2 link-local
+ ipv6 address 2001:DB8:CAFE:2::2/64
+ no shutdown
+ exit
+ interface Serial0/0/1
+ ip address 192.168.4.1 255.255.255.252
+ ipv6 address FE80::2 link-local
+ ipv6 address 2001:DB8:CAFE:4::1/64
+ clock rate 64000
+ no shutdown
+ exit
+ router ospf 1
+ router-id 2.2.2.2
+ exit
+ interface serial 0/0/1
+ ip ospf 1 area 0
+ exit
+ interface gigabitethernet 0/0
+ ip ospf 1 area 0             
+ exit
+ interface serial 0/0/0
+ ip ospf 1 area 51     
+ exit
+ router ospf 1
+ area 51 stub
+ exit
+ router ospf 1
+ area 51 stub no-summary 
+ exit
+ ipv6 unicast-routing
+ ipv6 router ospf 2
+ router-id 2.2.2.2
+ exit
+ interface serial 0/0/1
+ ipv6 ospf 2 area 0
+ exit
+ interface gigabitethernet 0/0 
+ ipv6 ospf 2 area 0 
+ exit
+ interface serial 0/0/0
+ ipv6 ospf 2 area 51   
+exit       
+ ipv6 router ospf 2
+ area 51 stub
+ exit
+ ipv6 router ospf 2
+ area 51 stub no-summary
+ exit
+-------R3---------------
+ en
+ conf t
+ hostname R3
+ no ip domain-lookup
+ line con 0
+ logging synchronous
+ exec-timeout 0 0
+exit
+ interface GigabitEthernet0/0
+ ip address 192.168.5.1 255.255.255.0
+ ipv6 address FE80::3 link-local
+ ipv6 address 2001:DB8:CAFE:5::1/64
+ no shutdown
+ exit
+ interface Serial0/0/1
+ ip address 192.168.4.2 255.255.255.252
+ ipv6 address FE80::3 link-local
+ ipv6 address 2001:DB8:CAFE:4::2/64
+ no shutdown
+ exit
+ interface Serial0/1/0
+ ip address 192.168.77.2 255.255.255.0
+ ipv6 address FE80::3 link-local
+ ipv6 address 2001:DB8:FEED:77::2/64
+ clock rate 64000
+ no shutdown
+ exit
+ router ospf 1
+ router-id 3.3.3.3
+ exit
+ interface gigabitethernet 0/0
+ ip ospf 1 area 0
+ exit
+ interface serial 0/0/1
+ ip ospf 1 area 0      
+ exit
+ ip route 192.168.99.0 255.255.255.0 192.168.77.1
+ router ospf 1
+ redistribute static subnets
+ exit
+ ipv6 unicast-routing
+ ipv6 router ospf 2
+ router-id 3.3.3.3
+ exit
+ interface gigabitethernet 0/0
+ ipv6 ospf 2 area 0
+ exit
+ interface serial 0/0/1
+ ipv6 ospf 2 area 0    
+ exit
+ ipv6 route ::/0 2001:db8:feed:77::1
+ ipv6 router ospf 2
+ default-information originate
+ exit
+ ipv6 route 2001:db8:99:1::/64 2001:db8:feed:77::1
+ ipv6 router ospf 2
+ redistribute static
+ exit
+-------R4---------------
+ en
+ conf t
+ hostname R4
+ no ip domain-lookup
+ line con 0
+ logging synchronous
+ exec-timeout 0 0
+exit
+ interface Serial0/0/0
+ ip address 192.168.77.1 255.255.255.0
+ ipv6 address FE80::4 link-local
+ ipv6 address 2001:DB8:FEED:77::1/64
+ no shutdown
+ exit
+ interface gigabitethernet 0/0
+ ip address 192.168.99.1 255.255.255.0
+ ipv6 address 2001:db8:99:1::1/64 
+ no shutdown
+ exit
+ ipv6 unicast-routing 
+ ipv6 route 2001:DB8:CAFE::/48 2001:DB8:FEED:77::2
+ ip route 0.0.0.0 0.0.0.0 192.168.77.2
+ exit
