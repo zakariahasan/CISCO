@@ -1,0 +1,112 @@
+ R1-------------------------
+ enable
+ conf t
+ hostname R1
+ no ip domain-lookup
+ line con 0
+ logging synchronous
+ exec-timeout 0 0
+ interface GigabitEthernet 0/0
+ description Engineering Department
+ ipv6 address 2001:db8:cafe:1::1/64
+ ipv6 address fe80::1 link-local
+ no shutdown
+ exit
+ interface serial 0/0/0
+ description Serial link to R2     
+ ipv6 address 2001:db8:cafe:2::1/64
+ ipv6 address fe80::1 link-local   
+ clock rate 64000
+ no shutdown
+exit
+ ipv6 unicast-routing
+ ipv6 router rip ROUTING-RIPng
+ exit
+ interface gigabitethernet 0/0
+ ipv6 rip ROUTING-RIPng enable
+ exit
+ interface serial 0/0/0
+ ipv6 rip ROUTING-RIPng enable
+ exit
+ clear ipv6 rip ROUTING-RIPng
+ R2-------------------------
+ enable
+ conf t
+ hostname R2
+ no ip domain-lookup
+ line con 0
+ logging synchronous
+ exec-timeout 0 0
+ interface GigabitEthernet 0/0
+ description Accounting Department
+ ipv6 address 2001:db8:cafe:3::1/64
+ ipv6 address fe80::2 link-local
+ no shutdown
+ exit
+ interface Loopback 10
+ description Marketing Department
+ ipv6 address 2001:db8:cafe:10::1/64
+ ipv6 address fe80::2 link-local    
+ exit
+ interface Loopback 11              
+ description Marketing Department
+ ipv6 address 2001:db8:cafe:11::1/64
+ ipv6 address fe80::2 link-local    
+ exit
+ interface Loopback 12              
+ description Marketing Department
+ ipv6 address 2001:db8:cafe:12::1/64
+ ipv6 address fe80::2 link-local    
+ exit
+ interface Serial 0/0/0            
+ description Serial link to R1     
+ ipv6 address 2001:db8:cafe:2::2/64
+ ipv6 address fe80::2 link-local   
+ no shutdown
+ exit
+ interface Serial 0/0/1
+ description Serial link to R3
+ ipv6 address 2001:db8:feed:1::2/64
+ ipv6 address fe80::2 link-local    
+ clock rate 64000
+ no shutdown
+ exit
+ ipv6 unicast-routing
+ interface serial 0/0/0       
+ ipv6 rip ROUTING-RIPng enable
+ exit
+ interface gigabitEthernet 0/0
+ ipv6 rip ROUTING-RIPng enable
+ exit
+ interface loopback 10
+ ipv6 rip ROUTING-RIPng enable
+ exit
+ interface loopback 11        
+ ipv6 rip ROUTING-RIPng enable
+ exit
+ interface loopback 12        
+ ipv6 rip ROUTING-RIPng enable
+ exit
+ interface serial 0/0/0
+ ipv6 rip ROUTING-RIPng default-information originate
+ exit
+ interface serial 0/0/0                              
+ no ipv6 rip ROUTING-RIPng default-information originate
+ ipv6 rip ROUTING-RIPng default-information only  ***
+ exit
+ R3-------------------------
+ enable
+ conf t
+ hostname R3
+ no ip domain-lookup
+ line con 0
+ logging synchronous
+ exec-timeout 0 0
+ interface Serial 0/0/1
+ description Serial link to R2
+ ipv6 address 2001:db8:feed:1::1/64
+ ipv6 address fe80::3 link-local
+ no shutdown
+ exit
+ ipv6 unicast-routing
+ ipv6 route 2001:db8:cafe::/48 2001:db8:feed:1::2
