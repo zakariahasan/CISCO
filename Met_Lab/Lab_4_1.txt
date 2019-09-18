@@ -1,0 +1,156 @@
+R1-------------------------
+ enable
+ conf t
+ hostname R1
+ no ip domain-lookup
+ line con 0
+ logging synchronous
+ exec-timeout 0 0
+ exit
+ interface Loopback0
+ ip address 172.16.1.1 255.255.255.0
+ exit
+ interface Loopback48
+ ip address 192.168.48.1 255.255.255.0
+ exit
+ interface Loopback49
+ ip address 192.168.49.1 255.255.255.0
+ exit
+ interface Loopback50
+ ip address 192.168.50.1 255.255.255.0
+ exit
+ interface Loopback51
+ ip address 192.168.51.1 255.255.255.0
+ exit
+ interface Loopback70
+ ip address 192.168.70.1 255.255.255.0
+ exit
+ interface Serial0/0/0
+ ip address 172.16.12.1 255.255.255.0
+ clock rate 64000
+ bandwidth 64
+ no shutdown
+ exit
+ router eigrp 1
+ no auto-summary
+ network 172.16.0.0
+ network 192.168.48.0
+ network 192.168.49.0
+ network 192.168.50.0
+ network 192.168.51.0
+ network 192.168.70.0
+exit
+ interface Serial0/0/0
+ ip summary-address eigrp 1 192.168.48.0 255.255.254.0
+ exit
+ R2-------------------------
+ enable
+ conf t
+ hostname R2
+ no ip domain-lookup
+ line con 0
+ logging synchronous
+ exec-timeout 0 0
+ exit
+ interface Loopback0
+ ip address 172.16.2.1 255.255.255.0
+ exit
+ interface loopback 100
+ ip address 172.16.100.1 255.255.255.0
+ exit
+ interface Serial0/0/0
+ ip address 172.16.12.2 255.255.255.0
+ bandwidth 64
+ no shutdown
+ exit
+ interface Serial0/0/1
+ ip address 172.16.23.2 255.255.255.0
+ clock rate 64000
+ bandwidth 64
+ no shutdown
+ interface Loopback100
+ ip ospf network point-to-point
+ exit
+ router ospf 1
+ network 172.16.23.0 0.0.0.255 area 0
+ network 172.16.100.0 0.0.0.255 area 10
+ exit
+ router ospf 1
+ redistribute eigrp 1 subnets
+ exit
+ router eigrp 1
+ redistribute ospf 1 metric 10000 100 255 1 1500
+ exit
+
+ router ospf 1
+ summary-address 192.168.48.0 255.255.252.0
+ exit
+ R3-------------------------
+ enable
+ conf t
+ hostname R3
+ no ip domain-lookup
+ line con 0
+ logging synchronous
+ exec-timeout 0 0
+ exit
+ interface Loopback0
+ ip address 172.16.3.1 255.255.255.0
+ exit
+ interface loopback 8
+ ip address 192.168.8.1 255.255.255.0
+ exit
+ interface loopback 9
+ ip address 192.168.9.1 255.255.255.0
+ exit
+ interface loopback 10
+ ip address 192.168.10.1 255.255.255.0
+ exit
+ interface loopback 11
+ ip address 192.168.11.1 255.255.255.0
+ exit
+ interface Loopback20
+ ip address 192.168.20.1 255.255.255.0
+ exit
+ interface Loopback25
+ ip address 192.168.25.1 255.255.255.0
+ exit
+ interface Loopback30
+ ip address 192.168.30.1 255.255.255.0
+ exit
+ interface Loopback35
+ ip address 192.168.35.1 255.255.255.0
+ exit
+ interface Loopback40
+ ip address 192.168.40.1 255.255.255.0
+ exit
+ interface Serial0/0/1
+ ip address 172.16.23.3 255.255.255.0
+ bandwidth 64
+ no shutdown
+ exit
+ interface Loopback0
+ ip ospf network point-to-point
+ exit
+ int loopback 20           
+ ip ospf network point-to-point                   
+ exit
+ int loopback 25           
+ ip ospf network point-to-point                   
+ exit
+ int loopback 30           
+ ip ospf network point-to-point                   
+ exit
+ int loopback 35           
+ ip ospf network point-to-point                   
+ exit
+ int loopback 40           
+ ip ospf network point-to-point                   
+ exit
+ router ospf 1
+ network 172.16.0.0 0.0.255.255 area 0
+ network 192.168.0.0 0.0.255.255 area 0
+ network 192.168.8.0 0.0.3.255 area 20
+ router ospf 1
+ area 20 range 192.168.8.0 255.255.252.0
+ exit 
