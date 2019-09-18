@@ -1,0 +1,87 @@
+R1-------------------------
+ en
+ conf t
+ hostname ISP1
+ no ip domain-lookup
+ line con 0
+ logging synchronous
+ exec-timeout 0 0
+ interface Lo0
+ description ISP1 Internet Network
+ ip address 10.1.1.1 255.255.255.0
+ exit
+ interface Serial0/0/0
+ description ISP1 -> ITA
+ ip address 10.0.0.1 255.255.255.252
+ clock rate 128000
+ no shutdown
+ exit
+ router bgp 200
+ neighbor 10.0.0.2 remote-as 100
+ network 10.1.1.0 mask 255.255.255.0
+ exit
+ config t
+ interface loopback 100
+ ip address 192.168.100.1 255.255.255.0
+ exit
+ router bgp 200
+ neighbor 10.0.0.2 default-originate  ***
+ exit
+ R2-------------------------
+ en
+ conf t
+ hostname ITA
+ no ip domain-lookup
+ line con 0
+ logging synchronous
+ exec-timeout 0 0
+ interface Lo0
+ description Core router network link 1
+ ip address 192.168.0.1 255.255.255.0
+ exit
+ interface Lo1
+ description Core router network link 2
+ ip address 192.168.1.1 255.255.255.0
+ exit
+ interface Serial0/0/0
+ description ITA -> ISP1
+ ip address 10.0.0.2 255.255.255.252
+ no shutdown
+ exit
+ interface Serial0/0/1
+ description ITA -> ISP2
+ ip address 172.16.0.2 255.255.255.252
+ clock rate 128000
+ no shutdown
+ exit
+ router bgp 100
+ neighbor 10.0.0.1 remote-as 200
+ neighbor 172.16.0.1 remote-as 300
+ network 192.168.0.0
+ network 192.168.1.0
+ exit
+ ip route 0.0.0.0 0.0.0.0 10.0.0.1 210
+ ip route 0.0.0.0 0.0.0.0 172.16.0.1 220
+ no ip route 0.0.0.0 0.0.0.0 10.0.0.1 210
+ no ip route 0.0.0.0 0.0.0.0 172.16.0.1 220
+ R3-------------------------
+ en
+ conf t
+ hostname ISP2
+ no ip domain-lookup
+ line con 0
+ logging synchronous
+ exec-timeout 0 0
+ interface Lo0
+ description ISP2 Internet Network
+ ip address 172.16.1.1 255.255.255.0
+ exit 
+ interface Serial0/0/1
+ description ISP2 -> ITA
+ ip address 172.16.0.1 255.255.255.252
+ no shutdown
+ exit
+ router bgp 300
+ neighbor 172.16.0.2 remote-as 100
+ network 172.16.1.0 mask 255.255.255.0
+ exit
