@@ -1,0 +1,234 @@
+intenable
+configure ter
+
+no ip domain-lookup
+hostname R1
+line con 0
+no logging sy
+exec-timeout 0 0
+
+int gi0/0
+description link to R2
+ip address 10.10.10.1 255.255.255.248
+no shutdown
+exit
+
+int lo0
+ip address 192.168.1.1 255.255.255.0
+exit
+
+int lo1
+ip address 192.168.2.2 255.255.255.0
+exit
+
+
+router eigrp 100
+network 10.10.10.0
+network 192.168.1.0
+network 192.168.2.0
+
+
+-----------R2-------------------
+enable
+configure ter
+
+no ip domain-lookup
+hostname R2
+line con 0
+no logging sy
+exec-timeout 0 0
+
+int gi0/0
+description link to R1
+ip address 10.10.10.2 255.255.255.248
+no shutdown
+exit
+
+int gi0/1
+description link to R3
+ip address 10.10.30.1 255.255.255.248
+no shutdown
+exit
+
+
+int lo0
+ip address 192.168.3.1 255.255.255.0
+exit
+
+int lo1
+ip address 192.168.4.2 255.255.255.0
+exit
+
+
+router eigrp 100
+network 10.10.10.0
+network 192.168.3.0
+network 192.168.4.0
+
+router ospf 1
+network 10.10.30.0 0.0.0.7
+network 192.168.4.0 0.0.0.7
+router-id 192.168.4.1
+
+router eigrp 100
+redistribute ospf 1 metric 10000 100 255 1 1500
+exit
+
+
+router ospf 1
+redistribute eigrp 100 subnets
+exit
+
+
+-----------R3-----------------------
+enable
+configure ter
+
+no ip domain-lookup
+hostname R3
+line con 0
+no logging sy
+exec-timeout 0 0
+
+int gi0/1
+description link to R2
+ip address 10.10.30.2 255.255.255.248
+no shutdown
+exit
+
+int gi0/0
+description link to ISP-1
+ip address 20.20.10.2 255.255.255.248
+no shutdown
+exit
+
+int gi0/2
+description link to ISP-B
+ip address 11.30.10.2 255.255.255.248
+no shutdown
+exit
+
+
+int lo0
+ip address 192.168.5.1 255.255.255.0
+exit
+
+int lo1
+ip address 192.168.6.2 255.255.255.0
+exit
+
+
+router ospf 1
+network 10.10.30.0 0.0.0.7 area 1
+network 192.168.5.0 0.0.0.255 area 1
+default-information originate
+
+router bgp 100
+neighbor 20.20.10.1 remote-as 200
+network 192.168.6.0 mask 255.255.255.0
+
+
+ip route 0.0.0.0 0.0.0.0 gi0/2 220
+
+int lo3 
+ip add 192.168.11.1 255.255.255.0
+exit
+
+router ospf 1
+redistribute bgp 100 subnets
+exit
+router bgp 100 
+redistribute ospf 1 
+exit
+-----------ISP----------------------
+enable
+configure ter
+
+no ip domain-lookup
+hostname ISP
+line con 0
+no logging sy
+exec-timeout 0 0
+
+int gi0/0
+description link to R3
+ip address 20.20.10.1 255.255.255.248
+no shutdown
+exit
+
+int gi0/1
+description link to R3-B
+ip address 11.30.10.1 255.255.255.248
+no shutdown
+exit
+
+int lo0
+ip address 172.16.1.1 255.255.255.0
+exit
+
+int lo1
+ip address 172.16.2.1 255.255.255.0
+exit
+
+
+router bgp 200
+neighbor 20.20.10.2 remote-as 100
+network 172.16.1.0 mask 255.255.255.0
+network 172.16.2.0 mask 255.255.255.0
+
+
+ip route 0.0.0.0 0.0.0.0 gi0/1 220
+
+int lo3 
+ip add 192.168.12.1 255.255.255.0
+Exit
+
+int s0/0/0
+description link to BGD
+ip address 10.100.10.1 255.255.255.252
+no shutdown
+exit
+
+router ospf 10
+network 10.100.10.0 0.0.0.3 area 1
+network 172.16.1.0 0.0.0.255 area 1
+network 172.16.2.0 0.0.0.255 area 1
+router-id 172.16.2.1
+
+router bgp 200
+redistribute ospf 10
+exit
+
+router ospf 10 
+redistribute bgp 200 subnets
+exit
+-----------BGD----------------------
+enable
+configure ter
+
+no ip domain-lookup
+hostname BGD
+line con 0
+no logging sy
+exec-timeout 0 0
+
+int s0/0/0
+description link to ISP
+ip address 10.100.10.2 255.255.255.252
+no shutdown
+exit
+
+
+int lo0
+ip address 192.168.40.1 255.255.255.0
+exit
+
+int lo1
+ip address 192.168.41.1 255.255.255.0
+exit
+router ospf 10
+network 10.100.10.0 0.0.0.3 area 1
+network 192.168.40.1 0.0.0.255 area 1
+network 192.168.41.1 0.0.0.255 area 1
+router-id 192.168.41.1
+
