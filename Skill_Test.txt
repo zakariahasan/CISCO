@@ -1,4 +1,4 @@
-intenable
+enable
 configure ter
 
 no ip domain-lookup
