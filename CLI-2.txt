@@ -1,0 +1,307 @@
+en	
+conf t
+hostname R1
+no ip domain-lookup
+
+line con 0
+no logging sy
+exec-timeout 0 0
+exit
+
+int gi 0/0
+des link R1--R2
+ip add 192.168.1.1 255.255.255.240
+no shutdown
+exit
+
+int loop 0
+ip add 10.10.11.1 255.255.255.0
+exit
+
+int loop 1
+ip add 10.10.12.1 255.255.255.0
+exit
+
+int loop 2
+ip add 10.10.13.1 255.255.255.0
+exit
+
+int loop 3
+ip add 10.10.14.1 255.255.255.0
+exit
+
+router eigrp 100
+network 192.168.1.0 
+network 10.10.11.0 255.255.255.0
+network 10.10.12.0 255.255.255.0
+network 10.10.13.0 255.255.255.0
+network 10.10.14.0 255.255.255.0
+exit
+
+**************R2*******************
+en	
+conf t
+hostname R2
+no ip domain-lookup
+
+line con 0
+no logging sy
+exec-timeout 0 0
+exit
+
+int gi 0/0
+des link R2--R1
+ip add 192.168.1.2 255.255.255.240
+no shutdown
+exit
+
+int gi 0/1
+des link R2--R3
+ip add 192.168.2.1 255.255.255.240
+no shutdown
+exit
+
+int loop 0
+ip add 10.10.21.1 255.255.255.0
+exit
+
+int loop 1
+ip add 10.10.22.1 255.255.255.0
+exit
+
+int loop 2
+ip add 10.10.23.1 255.255.255.0
+exit
+
+int loop 3
+ip add 10.10.24.1 255.255.255.0
+exit
+
+router eigrp 100
+network 192.168.1.0 
+network 10.10.21.0 255.255.255.0
+network 10.10.22.0 255.255.255.0
+exit
+
+router ospf 1
+network 192.168.2.0 0.0.0.15 area 1
+network 10.10.23.0 0.0.0.255 area 1
+network 10.10.24.0 0.0.0.255 area 1
+exit
+
+router eigrp 100
+redistribute ospf 1 metric 1000 100 255 1 1500
+exit
+
+router ospf 1 
+redistribute eigrp 100 subnets
+exit
+
+
+
+*******************R3*************
+en	
+conf t
+hostname R3
+no ip domain-lookup
+
+line con 0
+no logging sy
+exec-timeout 0 0
+exit
+
+int gi 0/1
+des link R3--R2
+ip add 192.168.2.2 255.255.255.240
+no shutdown
+exit
+
+int gi 0/0
+des link R3--R4 P
+ip add 192.168.3.1 255.255.255.240
+no shutdown
+exit
+
+int gi 0/2 
+des link R3--R4 S
+ip add 192.168.4.1 255.255.255.240
+no shutdown
+exit
+
+int loop 0
+ip add 10.10.31.1 255.255.255.0
+exit
+
+int loop 1
+ip add 10.10.32.1 255.255.255.0
+exit
+
+int loop 2
+ip add 10.10.33.1 255.255.255.0
+exit
+
+int loop 3
+ip add 10.10.34.1 255.255.255.0
+exit
+
+router ospf 1
+network 192.168.2.0 0.0.0.15 area 1
+network 10.10.31.0 0.0.0.255 area 1
+network 10.10.32.0 0.0.0.255 area 1
+default-information originate
+exit
+
+router bgp 100
+neighbor 192.168.3.2 remote-as 200
+distance 190 192.168.3.2 0.0.0.0
+neighbor 192.168.4.2 remote-as 200
+distance 180 192.168.4.2 0.0.0.0
+network 10.10.33.0 mask 255.255.255.0
+network 10.10.34.0 mask 255.255.255.0
+exit
+
+router ospf 1 
+redistribute bgp 100 subnets
+exit
+
+router bgp 100
+redistribute ospf 1 
+exit
+
+ip route 0.0.0.0 0.0.0.0 gi 0/0 200
+ip route 0.0.0.0 0.0.0.0 gi 0/2 220
+
+
+*******************R4*************
+en	
+conf t
+hostname R4
+no ip domain-lookup
+
+line con 0
+no logging sy
+exec-timeout 0 0
+exit
+
+int gi 0/0
+des link R4--R3
+ip add 192.168.3.2 255.255.255.240
+no shutdown
+exit
+
+int gi 0/2
+des link R4--R3 P
+ip add 192.168.4.2 255.255.255.240
+no shutdown
+exit
+
+
+
+int loop 0
+ip add 10.10.41.1 255.255.255.0
+exit
+
+int loop 1
+ip add 10.10.42.1 255.255.255.0
+exit
+
+int loop 2
+ip add 10.10.43.1 255.255.255.0
+exit
+
+int loop 3
+ip add 10.10.44.1 255.255.255.0
+exit
+
+router bgp 200
+neighbor 192.168.3.1 remote-as 100
+distance 190 192.168.3.1 0.0.0.0
+neighbor 192.168.4.1 remote-as 100
+distance 180 192.168.4.1 0.0.0.0
+network 10.10.41.0 mask 255.255.255.0
+network 10.10.42.0 mask 255.255.255.0
+network 10.10.43.0 mask 255.255.255.0
+network 10.10.44.0 mask 255.255.255.0
+
+exit
+
+
+************************************RP*****************************
+
+router eigrp 100
+network 192.168.1.0 
+network 10.10.11.0 255.255.255.0
+network 10.10.12.0 255.255.255.0
+network 10.10.13.0 255.255.255.0
+network 10.10.14.0 255.255.255.0
+exit
+
+******************R2*******************************************
+router eigrp 100
+network 192.168.1.0 
+network 10.10.21.0 255.255.255.0
+network 10.10.22.0 255.255.255.0
+exit
+
+router ospf 1
+network 192.168.2.0 0.0.0.15 area 1
+network 10.10.23.0 0.0.0.255 area 1
+network 10.10.24.0 0.0.0.255 area 1
+exit
+
+router eigrp 100
+redistribute ospf 1 metric 1000 100 255 1 1500
+exit
+
+router ospf 1 
+redistribute eigrp 100 subnets
+exit
+
+*********************R3*****************************
+router ospf 1
+network 192.168.2.0 0.0.0.15 area 1
+network 10.10.31.0 0.0.0.255 area 1
+network 10.10.32.0 0.0.0.255 area 1
+default-information originate
+exit
+
+router bgp 100
+neighbor 192.168.3.2 remote-as 200
+neighbor 192.168.4.2 remote-as 200
+network 10.10.33.0 mask 255.255.255.0
+network 10.10.34.0 mask 255.255.255.0
+exit
+
+router ospf 1 
+redistribute bgp 100 subnets
+exit
+
+router bgp 100
+redistribute ospf 1 
+exit
+
+ip route 0.0.0.0 0.0.0.0 gi 0/0 200
+ip route 0.0.0.0 0.0.0.0 gi 0/2 220
+
+********************R4*************************
+router bgp 200
+neighbor 192.168.3.1 remote-as 100
+neighbor 192.168.4.1 remote-as 100
+network 10.10.41.0 mask 255.255.255.0
+network 10.10.42.0 mask 255.255.255.0
+network 10.10.43.0 mask 255.255.255.0
+network 10.10.44.0 mask 255.255.255.0
+exit
+
+
+
+
+ping 10.10.11.1
+
+ping 10.10.41.1
+
+ping 10.10.21.1
+
+ping 10.10.31.1
+
+ping 10.10.33.1
